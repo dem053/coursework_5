@@ -1,5 +1,5 @@
 from typing import Any
-import requests, json
+import requests, time
 
 
 def get_employer_data(employer_ids: list) -> list[list[str, Any]]:
@@ -8,6 +8,7 @@ def get_employer_data(employer_ids: list) -> list[list[str, Any]]:
     for i in employer_ids:
         hh_url = f'https://api.hh.ru/employers/{str(i)}'
         response = requests.get(hh_url)
+        time.sleep(0.2)
         company = response.json()
         companies.append(
             [company['id'], company['name'], company['description'], company['area']['id'], company['area']['name']])
@@ -35,12 +36,13 @@ def get_vacancies_data(employer_ids: list, key_word: str) -> list[list[str, Any]
         if page == response.json()['pages']:
             break
         page += 1
+        time.sleep(0.2)
     vacancies_data = created_vac_data(vacancies)
     return vacancies_data
 
 
 def created_vac_data(vacancies: list[list]):
-    """Нормализует данные о вакансиях для загрузки в DB"""
+    """Нормализует данные о вакансиях для загрузки в базу данных по шаблону базы"""
     vacancies_data = []
     for v in vacancies:
         v_id = v['id']
@@ -78,6 +80,9 @@ def get_salary(salary):
 
 
 def make_cities_list(employers_data, vacancies_data):
+    """
+    Сосздает список словарей уникальных городов {id:name], которые присутсвуют
+    в списках employers_data и vacancies_data"""
     cities = {}
     for emp in employers_data:
         if cities.get(emp[3]) is None:
